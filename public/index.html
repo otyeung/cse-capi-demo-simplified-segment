@@ -21,7 +21,9 @@
           analytics = (window[i] = window[i] || [])
         if (!analytics.initialize)
           if (analytics.invoked)
-            console.error('Segment snippet included twice.')
+            window.console &&
+              console.error &&
+              console.error('Segment snippet included twice.')
           else {
             analytics.invoked = !0
             analytics.methods = [
@@ -87,6 +89,7 @@
               var t = document.createElement('script')
               t.type = 'text/javascript'
               t.async = !0
+              t.setAttribute('data-global-segment-analytics-key', i)
               t.src =
                 'https://cdn.segment.com/analytics.js/v1/' +
                 key +
@@ -96,6 +99,7 @@
               analytics._loadOptions = n
             }
             analytics._writeKey = 'a9R3kH9eo5VIZfFEXnhcXjWptvWuhAfS'
+            analytics.SNIPPET_VERSION = '5.2.0'
             analytics.load('a9R3kH9eo5VIZfFEXnhcXjWptvWuhAfS')
             analytics.page()
           }
