@@ -101,8 +101,6 @@
           }
       })()
     </script>
-
-    <!-- Middleware to attach cookies -->
     <script>
       function getCookie(name) {
         const value = `; ${document.cookie}`
@@ -111,7 +109,7 @@
         return null
       }
 
-      // Safe retry wrapper
+      // Safe retry wrapper to wait for Segment analytics to load
       function waitForSegment(cb) {
         if (window.analytics && analytics.addSourceMiddleware) {
           cb()
@@ -124,6 +122,9 @@
         analytics.addSourceMiddleware(({ payload, next }) => {
           const props = payload.obj.properties || payload.obj.traits || {}
 
+          // Get current time in milliseconds since Epoch
+          const receivedAtEpoch = Date.now()
+
           next({
             ...payload,
             obj: {
@@ -132,7 +133,17 @@
                 ...props,
                 li_fat_id: getCookie('li_fat_id'),
                 ivid: getCookie('ivid'),
+                receivedAtEpoch: receivedAtEpoch, // Added here
               },
+              // Also add to traits if this is an identify call
+              ...(payload.obj.traits
+                ? {
+                    traits: {
+                      ...payload.obj.traits,
+                      receivedAtEpoch: receivedAtEpoch,
+                    },
+                  }
+                : {}),
             },
           })
         })
