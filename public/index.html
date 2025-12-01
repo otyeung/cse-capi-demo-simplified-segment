@@ -23,9 +23,11 @@
           analytics = (window[i] = window[i] || [])
         if (!analytics.initialize)
           if (analytics.invoked)
-            console.error('Segment snippet included twice.')
+            window.console &&
+              console.error &&
+              console.error('Segment snippet included twice.')
           else {
-            analytics.invoked = true
+            analytics.invoked = !0
             analytics.methods = [
               'trackSubmit',
               'trackClick',
@@ -55,20 +57,41 @@
                 if (window[i].initialized)
                   return window[i][e].apply(window[i], arguments)
                 var n = Array.prototype.slice.call(arguments)
+                if (
+                  [
+                    'track',
+                    'screen',
+                    'alias',
+                    'group',
+                    'page',
+                    'identify',
+                  ].indexOf(e) > -1
+                ) {
+                  var c = document.querySelector("link[rel='canonical']")
+                  n.push({
+                    __t: 'bpc',
+                    c: (c && c.getAttribute('href')) || void 0,
+                    p: location.pathname,
+                    u: location.href,
+                    s: location.search,
+                    t: document.title,
+                    r: document.referrer,
+                  })
+                }
                 n.unshift(e)
                 analytics.push(n)
                 return analytics
               }
             }
             for (var n = 0; n < analytics.methods.length; n++) {
-              analytics[analytics.methods[n]] = analytics.factory(
-                analytics.methods[n]
-              )
+              var key = analytics.methods[n]
+              analytics[key] = analytics.factory(key)
             }
             analytics.load = function (key, n) {
               var t = document.createElement('script')
               t.type = 'text/javascript'
-              t.async = true
+              t.async = !0
+              t.setAttribute('data-global-segment-analytics-key', i)
               t.src =
                 'https://cdn.segment.com/analytics.js/v1/' +
                 key +
@@ -77,13 +100,16 @@
               r.parentNode.insertBefore(t, r)
               analytics._loadOptions = n
             }
+            analytics._writeKey = 'a9R3kH9eo5VIZfFEXnhcXjWptvWuhAfS'
+            analytics.SNIPPET_VERSION = '5.2.0'
             analytics.load('a9R3kH9eo5VIZfFEXnhcXjWptvWuhAfS')
+            analytics.page()
           }
       })()
     </script>
 
-    <!-- Register plugin ONLY AFTER Segment snippet -->
     <script>
+      // First: helper to read cookies
       function getCookie(name) {
         const value = `; ${document.cookie}`
         const parts = value.split(`; ${name}=`)
@@ -91,45 +117,24 @@
         return null
       }
 
-      // Wait for Segment to fully load, then register plugin
+      // Second: attach middleware AFTER Segment is ready
       analytics.ready(() => {
-        analytics.register({
-          name: 'capture-first-party-cookies',
-          version: '1.0.0',
-          type: 'before',
+        analytics.addSourceMiddleware(({ payload, next }) => {
+          // Inject cookies into event properties
+          const props = payload.obj.properties || payload.obj.traits || {}
 
-          isLoaded() {
-            return true
-          },
-          load() {
-            return Promise.resolve()
-          },
-
-          async page(ctx) {
-            ctx.update({
+          next({
+            ...payload,
+            obj: {
+              ...payload.obj,
               properties: {
-                ...ctx.properties,
+                ...props,
                 li_fat_id: getCookie('li_fat_id'),
                 ivid: getCookie('ivid'),
               },
-            })
-            return ctx
-          },
-
-          async track(ctx) {
-            ctx.update({
-              properties: {
-                ...ctx.properties,
-                li_fat_id: getCookie('li_fat_id'),
-                ivid: getCookie('ivid'),
-              },
-            })
-            return ctx
-          },
+            },
+          })
         })
-
-        // Fire page call AFTER plugin loaded → attaches cookies
-        analytics.page()
       })
     </script>
   </head>
