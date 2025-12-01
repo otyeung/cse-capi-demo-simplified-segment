@@ -126,9 +126,6 @@
         analytics.addSourceMiddleware(({ payload, next }) => {
           const props = payload.obj.properties || payload.obj.traits || {}
 
-          // Get current time in milliseconds since Epoch
-          const receivedAtEpoch = Date.now()
-
           next({
             ...payload,
             obj: {
@@ -137,14 +134,14 @@
                 ...props,
                 li_fat_id: getCookie('li_fat_id'),
                 ivid: getCookie('ivid'),
-                receivedAtEpoch: receivedAtEpoch, // Added here
               },
               // Also add to traits if this is an identify call
               ...(payload.obj.traits
                 ? {
                     traits: {
                       ...payload.obj.traits,
-                      receivedAtEpoch: receivedAtEpoch,
+                      li_fat_id: getCookie('li_fat_id'),
+                      ivid: getCookie('ivid'),
                     },
                   }
                 : {}),
