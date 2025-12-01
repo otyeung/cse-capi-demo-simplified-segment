@@ -5,16 +5,14 @@
     <meta charset="utf-8" />
     <link rel="icon" href="%PUBLIC_URL%/favicon.ico" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="theme-color" content="#000000" />
-    <meta
-      name="description"
-      content="Web site created using create-react-app"
-    />
-    <link rel="apple-touch-icon" href="%PUBLIC_URL%/apple-touch-icon.png" />
-    <link rel="manifest" href="%PUBLIC_URL%/manifest.json" />
 
-    <!-- Page Title -->
     <title>LinkedIn Online CAPI Demo for Segment</title>
+
+    <!-- Set 1P Cookie BEFORE Segment loads -->
+    <script>
+      document.cookie =
+        'ivid=1cf6a0db-e689-42dc-984e-9f089057f71d; path=/; max-age=31536000; SameSite=Lax'
+    </script>
 
     <!-- Segment Analytics -->
     <script>
@@ -23,9 +21,7 @@
           analytics = (window[i] = window[i] || [])
         if (!analytics.initialize)
           if (analytics.invoked)
-            window.console &&
-              console.error &&
-              console.error('Segment snippet included twice.')
+            console.error('Segment snippet included twice.')
           else {
             analytics.invoked = !0
             analytics.methods = [
@@ -91,7 +87,6 @@
               var t = document.createElement('script')
               t.type = 'text/javascript'
               t.async = !0
-              t.setAttribute('data-global-segment-analytics-key', i)
               t.src =
                 'https://cdn.segment.com/analytics.js/v1/' +
                 key +
@@ -101,15 +96,14 @@
               analytics._loadOptions = n
             }
             analytics._writeKey = 'a9R3kH9eo5VIZfFEXnhcXjWptvWuhAfS'
-            analytics.SNIPPET_VERSION = '5.2.0'
             analytics.load('a9R3kH9eo5VIZfFEXnhcXjWptvWuhAfS')
             analytics.page()
           }
       })()
     </script>
 
+    <!-- Middleware to attach cookies -->
     <script>
-      // First: helper to read cookies
       function getCookie(name) {
         const value = `; ${document.cookie}`
         const parts = value.split(`; ${name}=`)
@@ -117,10 +111,17 @@
         return null
       }
 
-      // Second: attach middleware AFTER Segment is ready
-      analytics.ready(() => {
+      // Safe retry wrapper
+      function waitForSegment(cb) {
+        if (window.analytics && analytics.addSourceMiddleware) {
+          cb()
+        } else {
+          setTimeout(() => waitForSegment(cb), 50)
+        }
+      }
+
+      waitForSegment(() => {
         analytics.addSourceMiddleware(({ payload, next }) => {
-          // Inject cookies into event properties
           const props = payload.obj.properties || payload.obj.traits || {}
 
           next({
@@ -140,17 +141,9 @@
   </head>
 
   <body>
-    <!-- NoScript Message -->
     <noscript>You need to enable JavaScript to run this app.</noscript>
 
-    <!-- Root Container for Web Application -->
     <div id="root"></div>
-
-    <!-- Set 1P Cookie on Page Load -->
-    <script type="text/javascript">
-      document.cookie =
-        'ivid=1cf6a0db-e689-42dc-984e-9f089057f71d; path=/; max-age=31536000; SameSite=Lax'
-    </script>
 
     <!-- LinkedIn Insight Tag -->
     <script type="text/javascript">
