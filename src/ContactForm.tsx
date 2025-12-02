@@ -112,17 +112,22 @@ const ContactForm: React.FC = () => {
 
       console.log(debugMessage)
 
-      // Manual analytics.track() call
-      if (window.analytics?.track) {
-        window.analytics.track('Sign Up', {
-          hashedEmail: updatedFormData.hashEmail,
-          lastName: updatedFormData.lastName,
-          firstName: updatedFormData.firstName,
-          title: updatedFormData.title,
-          company: updatedFormData.company,
-          countryCode: updatedFormData.countryCode,
+      // Manual analytics.track() call - wait for analytics to be ready
+      if (window.analytics) {
+        window.analytics.ready(() => {
+          console.log('[DEBUG] Segment is ready, calling track()')
+          window.analytics.track('Sign Up', {
+            hashedEmail: updatedFormData.hashEmail,
+            lastName: updatedFormData.lastName,
+            firstName: updatedFormData.firstName,
+            title: updatedFormData.title,
+            company: updatedFormData.company,
+            countryCode: updatedFormData.countryCode,
+          })
+          console.log('[DEBUG] analytics.track() called with Sign Up event')
         })
-        console.log('[DEBUG] analytics.track() called with Sign Up event')
+      } else {
+        console.error('[DEBUG] window.analytics is not available')
       }
 
       console.log('Form submitted successfully:', updatedFormData)

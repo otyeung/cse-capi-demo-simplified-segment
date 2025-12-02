@@ -103,7 +103,7 @@
             analytics._writeKey = 'a9R3kH9eo5VIZfFEXnhcXjWptvWuhAfS'
             analytics.SNIPPET_VERSION = '5.2.0'
             analytics.load('a9R3kH9eo5VIZfFEXnhcXjWptvWuhAfS')
-            analytics.page()
+            // Page call moved to after middleware setup
           }
       })()
     </script>
@@ -126,8 +126,14 @@
       }
 
       waitForSegment(() => {
+        console.log('[DEBUG] Setting up Segment middleware for 1P cookies')
+
         analytics.addSourceMiddleware(({ payload, next }) => {
           const props = payload.obj.properties || payload.obj.traits || {}
+          const li_fat_id = getCookie('li_fat_id')
+          const ivid = getCookie('ivid')
+
+          console.log('[DEBUG] Middleware adding cookies:', { li_fat_id, ivid })
 
           next({
             ...payload,
@@ -135,15 +141,15 @@
               ...payload.obj,
               properties: {
                 ...props,
-                li_fat_id: getCookie('li_fat_id'),
-                ivid: getCookie('ivid'),
+                li_fat_id: li_fat_id,
+                ivid: ivid,
               },
               ...(payload.obj.traits
                 ? {
                     traits: {
                       ...payload.obj.traits,
-                      li_fat_id: getCookie('li_fat_id'),
-                      ivid: getCookie('ivid'),
+                      li_fat_id: li_fat_id,
+                      ivid: ivid,
                     },
                   }
                 : {}),
@@ -151,6 +157,7 @@
           })
         })
 
+        console.log('[DEBUG] Middleware registered, calling analytics.page()')
         analytics.page()
       })
     </script>
