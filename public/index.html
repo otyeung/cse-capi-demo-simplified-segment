@@ -16,7 +16,6 @@
       }
     </script>
 
-    <!-- Segment Analytics -->
     <script>
       !(function () {
         var i = 'analytics',
@@ -103,11 +102,10 @@
             analytics._writeKey = 'a9R3kH9eo5VIZfFEXnhcXjWptvWuhAfS'
             analytics.SNIPPET_VERSION = '5.2.0'
             analytics.load('a9R3kH9eo5VIZfFEXnhcXjWptvWuhAfS')
-            // Page call moved to after middleware setup
+            analytics.page()
           }
       })()
     </script>
-
     <!-- Segment middleware to add 1P cookies to all events -->
     <script>
       function getCookie(name) {
