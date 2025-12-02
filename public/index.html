@@ -10,8 +10,10 @@
 
     <!-- Set 1P Cookie BEFORE Segment loads -->
     <script>
-      document.cookie =
-        'ivid=1cf6a0db-e689-42dc-984e-9f089057f71d; path=/; max-age=31536000; SameSite=Lax'
+      if (!document.cookie.includes('ivid=')) {
+        document.cookie =
+          'ivid=1cf6a0db-e689-42dc-984e-9f089057f71d; path=/; max-age=31536000; SameSite=Lax'
+      }
     </script>
 
     <!-- Segment Analytics -->
@@ -105,6 +107,7 @@
           }
       })()
     </script>
+
     <!-- Segment middleware to add 1P cookies to all events -->
     <script>
       function getCookie(name) {
@@ -114,7 +117,6 @@
         return null
       }
 
-      // Safe retry wrapper to wait for Segment analytics to load
       function waitForSegment(cb) {
         if (window.analytics && analytics.addSourceMiddleware) {
           cb()
@@ -136,7 +138,6 @@
                 li_fat_id: getCookie('li_fat_id'),
                 ivid: getCookie('ivid'),
               },
-              // Also add to traits if this is an identify call
               ...(payload.obj.traits
                 ? {
                     traits: {
@@ -149,6 +150,8 @@
             },
           })
         })
+
+        analytics.page()
       })
     </script>
   </head>
