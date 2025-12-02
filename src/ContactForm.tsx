@@ -69,6 +69,19 @@ const ContactForm: React.FC = () => {
   }, [])
 
   useEffect(() => {
+    if (formRef.current) {
+      formRef.current.addEventListener('submit', () => {
+        console.log('[DEBUG] Segment form submit detected. Form data:', {
+          hashedEmail: formData.hashEmail,
+          lastName: formData.lastName,
+          firstName: formData.firstName,
+          title: formData.title,
+          company: formData.company,
+          countryCode: formData.countryCode,
+        })
+      })
+    }
+
     if (formRef.current && window.analytics?.trackForm) {
       window.analytics.trackForm(formRef.current, 'Sign Up', {
         hashedEmail: formData.hashEmail,
