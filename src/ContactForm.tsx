@@ -1,18 +1,16 @@
 // src/ContactForm.tsx
 import React, { useState, useEffect, useRef } from 'react'
-import './App.css' // Importing styles
-import Modal from './Modal' // Assuming you have a Modal component
-
-// declare function gtag(...args: any[]): void
+import './App.css'
+import Modal from './Modal'
 
 declare global {
   interface Window {
     dataLayer: any[]
     gtag: (command: string, event: string, data: any) => void
+    analytics: any
   }
 }
 
-// Define type/interface for form data
 interface FormData {
   li_fat_id: string
   lastName: string
@@ -29,7 +27,6 @@ interface FormData {
   leadId: string
 }
 
-// Default values for form data
 const initialFormData: FormData = {
   li_fat_id: '',
   lastName: 'Doe',
@@ -48,11 +45,11 @@ const initialFormData: FormData = {
 
 const ContactForm: React.FC = () => {
   const [formData, setFormData] = useState<FormData>(initialFormData)
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [submissionStatus, setSubmissionStatus] = useState<string | null>(null)
   const [isModalOpen, setIsModalOpen] = useState(false)
-  const [modalMessage, setModalMessage] = useState<string | null>(null) // To store the message for modal
+  const [modalMessage, setModalMessage] = useState<string | null>(null)
   const isAnalyticsExecuted = useRef(false)
+  const formRef = useRef<HTMLFormElement | null>(null)
 
   useEffect(() => {
     const fetchData = async () => {
@@ -69,9 +66,21 @@ const ContactForm: React.FC = () => {
     }
 
     fetchData()
-  }, []) // Empty dependency array ensures it runs only once
+  }, [])
 
-  // Begin Cookie routine
+  useEffect(() => {
+    if (formRef.current && window.analytics?.trackForm) {
+      window.analytics.trackForm(formRef.current, 'Sign Up', {
+        hashedEmail: formData.hashEmail,
+        lastName: formData.lastName,
+        firstName: formData.firstName,
+        title: formData.title,
+        company: formData.company,
+        countryCode: formData.countryCode,
+      })
+    }
+  }, [formData])
+
   function getCookie(name: string): string | undefined {
     if (typeof document !== 'undefined') {
       const matches = document.cookie.match(
@@ -85,66 +94,19 @@ const ContactForm: React.FC = () => {
     }
     return undefined
   }
-  // End Cookie routine
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
 
     try {
-      // Hash email before submission
       const hashedEmail = await hashData(formData.email)
       setFormData((prevData) => ({
         ...prevData,
         hashEmail: hashedEmail,
       }))
 
-      // Method 1 : LinkedIn CAPI  - form submit event passed to Data Layer
-      // window.dataLayer = window.dataLayer || []
-      // window.dataLayer.push({
-      //   event: 'CAPI Form Submit', // pass in an event name
-      //   user_data: {
-      //     linkedinFirstPartyId: formData.li_fat_id,
-      //     sha256_email_address: hashedEmail,
-      //     address: {
-      //       first_name: formData.firstName,
-      //       last_name: formData.lastName,
-      //       country: formData.countryCode,
-      //     },
-      //     jobTitle: formData.title,
-      //     companyName: formData.company,
-      //     acxiomID: formData.acxiomId,
-      //     moatID: formData.oracleMoatId,
-      //     //leadID: 'urn:li:leadGenFormResponse:' + formData.leadId,
-      //   },
-      //   currency: formData.currency,
-      //   value: formData.value,
-      // })
-
-      // Method 2 : LinkedIn CAPI  - form submit event passed to Google tag via gtag function
-      // if (typeof window.gtag === 'function') {
-      //   window.gtag('event', 'capi_form_submit', {
-      //     user_data: {
-      //       linkedinFirstPartyId: formData.li_fat_id,
-      //       sha256_email_address: hashedEmail,
-      //       address: {
-      //         first_name: formData.firstName,
-      //         last_name: formData.lastName,
-      //         country: formData.countryCode,
-      //       },
-      //       jobTitle: formData.title,
-      //       companyName: formData.company,
-      //       acxiomID: formData.acxiomId,
-      //       moatID: formData.oracleMoatId,
-      //       leadID: 'urn:li:leadGenFormResponse:' + formData.leadId,
-      //     },
-      //     currency: formData.currency,
-      //     value: formData.value,
-      //   })
-      // }
-
       console.log('Form submitted successfully:', formData)
 
-      // Set the modal message to display all form data as a string
       setModalMessage(
         'Form submitted successfully : ' + JSON.stringify(formData, null, 2)
       )
@@ -183,7 +145,6 @@ const ContactForm: React.FC = () => {
     setFormData(initialFormData)
   }
 
-  // Begin SHA-256 hashing function, email is converted to lower case before hashing
   const hashData = async (value: string): Promise<string> => {
     const encoder = new TextEncoder()
     const buffer = await crypto.subtle.digest(
@@ -193,12 +154,16 @@ const ContactForm: React.FC = () => {
     const hashArray = Array.from(new Uint8Array(buffer))
     return hashArray.map((byte) => byte.toString(16).padStart(2, '0')).join('')
   }
-  // End SHA-256 hashing function
 
   return (
     <>
       <div className='App'>
-        <form className='centered-form' onSubmit={handleSubmit} id='capiForm'>
+        <form
+          ref={formRef}
+          className='centered-form'
+          onSubmit={handleSubmit}
+          id='capiForm'
+        >
           <h1 className='form-title'>LinkedIn Online CAPI Demo</h1>
 
           <label>
@@ -244,6 +209,7 @@ const ContactForm: React.FC = () => {
               onChange={handleChange}
             />
           </label>
+
           <label>
             Email converted to lower case and SHA256 hashing (read-only):
             <input
@@ -254,6 +220,7 @@ const ContactForm: React.FC = () => {
               readOnly
             />
           </label>
+
           <label>
             Title:
             <input
@@ -355,11 +322,10 @@ const ContactForm: React.FC = () => {
           </button>
         </form>
 
-        {/* Modal Component */}
         <Modal
           isOpen={isModalOpen}
           onClose={closeModal}
-          message={modalMessage} // Pass the form data to modal
+          message={modalMessage}
         />
       </div>
     </>
