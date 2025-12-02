@@ -68,32 +68,6 @@ const ContactForm: React.FC = () => {
     fetchData()
   }, [])
 
-  useEffect(() => {
-    if (formRef.current) {
-      formRef.current.addEventListener('submit', () => {
-        console.log('[DEBUG] Segment form submit detected. Form data:', {
-          hashedEmail: formData.hashEmail,
-          lastName: formData.lastName,
-          firstName: formData.firstName,
-          title: formData.title,
-          company: formData.company,
-          countryCode: formData.countryCode,
-        })
-      })
-    }
-
-    if (formRef.current && window.analytics?.trackForm) {
-      window.analytics.trackForm(formRef.current, 'Sign Up', {
-        hashedEmail: formData.hashEmail,
-        lastName: formData.lastName,
-        firstName: formData.firstName,
-        title: formData.title,
-        company: formData.company,
-        countryCode: formData.countryCode,
-      })
-    }
-  }, [formData])
-
   function getCookie(name: string): string | undefined {
     if (typeof document !== 'undefined') {
       const matches = document.cookie.match(
@@ -113,15 +87,50 @@ const ContactForm: React.FC = () => {
 
     try {
       const hashedEmail = await hashData(formData.email)
-      setFormData((prevData) => ({
-        ...prevData,
+      const updatedFormData = {
+        ...formData,
         hashEmail: hashedEmail,
-      }))
+      }
 
-      console.log('Form submitted successfully:', formData)
+      setFormData(updatedFormData)
+
+      // Debug message
+      const debugMessage =
+        '[DEBUG] Segment form submit detected. Form data: ' +
+        JSON.stringify(
+          {
+            hashedEmail: updatedFormData.hashEmail,
+            lastName: updatedFormData.lastName,
+            firstName: updatedFormData.firstName,
+            title: updatedFormData.title,
+            company: updatedFormData.company,
+            countryCode: updatedFormData.countryCode,
+          },
+          null,
+          2
+        )
+
+      console.log(debugMessage)
+
+      // Manual analytics.track() call
+      if (window.analytics?.track) {
+        window.analytics.track('Sign Up', {
+          hashedEmail: updatedFormData.hashEmail,
+          lastName: updatedFormData.lastName,
+          firstName: updatedFormData.firstName,
+          title: updatedFormData.title,
+          company: updatedFormData.company,
+          countryCode: updatedFormData.countryCode,
+        })
+        console.log('[DEBUG] analytics.track() called with Sign Up event')
+      }
+
+      console.log('Form submitted successfully:', updatedFormData)
 
       setModalMessage(
-        'Form submitted successfully : ' + JSON.stringify(formData, null, 2)
+        debugMessage +
+          '\n\nForm submitted successfully : ' +
+          JSON.stringify(updatedFormData, null, 2)
       )
       setSubmissionStatus('success')
       setIsModalOpen(true)
