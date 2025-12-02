@@ -116,7 +116,7 @@ const ContactForm: React.FC = () => {
       if (window.analytics) {
         window.analytics.ready(() => {
           console.log('[DEBUG] Segment is ready, calling track()')
-          
+
           const trackPayload = {
             hashedEmail: updatedFormData.hashEmail,
             lastName: updatedFormData.lastName,
@@ -125,13 +125,15 @@ const ContactForm: React.FC = () => {
             company: updatedFormData.company,
             countryCode: updatedFormData.countryCode,
           }
-          
+
           console.log('[DEBUG] Track payload:', trackPayload)
-          
+
           window.analytics.track('Sign Up', trackPayload, {}, () => {
-            console.log('[DEBUG] Track event callback fired - event sent successfully!')
+            console.log(
+              '[DEBUG] Track event callback fired - event sent successfully!'
+            )
           })
-          
+
           console.log('[DEBUG] analytics.track() called with Sign Up event')
         })
       } else {
