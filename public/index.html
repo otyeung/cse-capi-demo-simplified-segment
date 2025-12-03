@@ -131,7 +131,11 @@
           const ivid = getCookie('ivid')
           const timestamp = Date.now()
 
-          console.log('[DEBUG] Middleware adding cookies:', { li_fat_id, ivid, timestamp })
+          console.log('[DEBUG] Middleware adding cookies:', {
+            li_fat_id,
+            ivid,
+            timestamp,
+          })
 
           next({
             ...payload,
