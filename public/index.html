@@ -129,8 +129,9 @@
           const props = payload.obj.properties || payload.obj.traits || {}
           const li_fat_id = getCookie('li_fat_id')
           const ivid = getCookie('ivid')
+          const timestamp = Date.now()
 
-          console.log('[DEBUG] Middleware adding cookies:', { li_fat_id, ivid })
+          console.log('[DEBUG] Middleware adding cookies:', { li_fat_id, ivid, timestamp })
 
           next({
             ...payload,
@@ -140,6 +141,7 @@
                 ...props,
                 li_fat_id: li_fat_id,
                 ivid: ivid,
+                timestamp: timestamp,
               },
               ...(payload.obj.traits
                 ? {
