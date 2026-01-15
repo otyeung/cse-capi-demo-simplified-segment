@@ -17,6 +17,26 @@
     </script>
 
     <script>
+      ;(function () {
+        if (window.__page_event_id) return
+
+        function generateUUIDv4() {
+          return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(
+            /[xy]/g,
+            function (c) {
+              var r = (Math.random() * 16) | 0
+              var v = c === 'x' ? r : (r & 0x3) | 0x8
+              return v.toString(16)
+            }
+          )
+        }
+
+        window.__page_event_id = generateUUIDv4()
+
+        console.log('[DEBUG] Page event_id generated:', window.__page_event_id)
+      })()
+    </script>
+    <script>
       !(function () {
         var i = 'analytics',
           analytics = (window[i] = window[i] || [])
@@ -147,6 +167,7 @@
                 li_fat_id: li_fat_id,
                 ivid: ivid,
                 timestamp: timestamp,
+                event_id: window.__page_event_id,
               },
               ...(payload.obj.traits
                 ? {
@@ -195,6 +216,16 @@
         b.src = 'https://snap.licdn.com/li.lms-analytics/insight.min.js'
         s.parentNode.insertBefore(b, s)
       })(window.lintrk)
+    </script>
+
+    <script>
+      window.lintrk &&
+        window.lintrk('track', {
+          conversion_id: 3123644, //  QBO BIN
+          event_id: window.__page_event_id,
+          currency: 'AUD',
+          value: 1.0,
+        })
     </script>
 
     <noscript>
